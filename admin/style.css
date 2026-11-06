@@ -131,7 +131,11 @@ tr:hover td{background:var(--surface-2)}
 .form-field label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .modal-box h3{font-size:17px;margin:0}
 .modal-box p{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.nu-modulos{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.nu-modulos label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--fg);text-transform:none;letter-spacing:0;cursor:pointer}
+.nu-modulos input{min-height:0;width:16px;height:16px;padding:0}
+@media (max-width:480px){.nu-modulos{grid-template-columns:1fr}}
 
 /* toast */
 .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:30}

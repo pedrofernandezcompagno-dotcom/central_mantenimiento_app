@@ -215,6 +215,7 @@
         '<td class="acciones-cell">' +
           '<button class="btn-sm btn-cambiar-pw" data-uid="' + u.id + '" data-email="' + u.email + '">Cambiar</button>' +
           '<button class="btn-sm danger btn-reset" data-uid="' + u.id + '" data-email="' + u.email + '">Resetear</button>' +
+          '<button class="btn-sm danger btn-eliminar" data-uid="' + u.id + '" data-email="' + esc(u.email) + '">Eliminar</button>' +
         '</td>' +
         '</tr>';
     });
@@ -225,6 +226,12 @@
     document.querySelectorAll('.btn-reset').forEach(function (btn) {
       btn.addEventListener('click', function () {
         confirmarReset(btn.dataset.uid, btn.dataset.email);
+      });
+    });
+
+    document.querySelectorAll('.btn-eliminar').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        confirmarEliminar(btn.dataset.uid, btn.dataset.email);
       });
     });
 
@@ -302,6 +309,7 @@
 
   function confirmarReset(uid, email) {
     pendingReset = uid;
+    pendingEliminar = null;
     $('modal-titulo').textContent = 'Resetear contraseña';
     $('modal-msg').textContent = '¿Resetear la contraseña de ' + email + ' a la genérica (Universo2026.)? El usuario va a tener que cambiarla después.';
     $('modal-pw-input').hidden = true;
@@ -310,14 +318,46 @@
     $('modal').hidden = false;
   }
 
+  /* ─── Eliminar usuario (SQL 034) ─── */
+  var pendingEliminar = null;
+
+  function confirmarEliminar(uid, email) {
+    pendingEliminar = uid;
+    pendingReset = null;
+    pendingCambio = null;
+    $('modal-titulo').textContent = 'Eliminar usuario';
+    $('modal-msg').textContent = '¿Eliminar a ' + email + '? Pierde el acceso a todas las apps y no puede volver a entrar. ' +
+      'Lo que cargó (registros, reclamos) se conserva. Esto no se puede deshacer.';
+    $('modal-pw-input').hidden = true;
+    $('modal-confirmar').textContent = 'Eliminar';
+    $('modal').hidden = false;
+  }
+
   $('modal-cancelar').addEventListener('click', function () {
     $('modal').hidden = true;
     pendingReset = null;
     pendingCambio = null;
+    pendingEliminar = null;
   });
 
   $('modal-confirmar').addEventListener('click', async function () {
     $('modal-confirmar').disabled = true;
+
+    if (pendingEliminar) {
+      $('modal-confirmar').textContent = 'Eliminando…';
+      var resDel = await sb.rpc('admin_eliminar_usuario', { p_user_id: pendingEliminar });
+      $('modal').hidden = true;
+      $('modal-confirmar').disabled = false;
+      $('modal-confirmar').textContent = 'Confirmar';
+      pendingEliminar = null;
+      if (resDel.error) {
+        toast(errorUsuarios(resDel.error));
+      } else {
+        toast('Usuario eliminado');
+        await Promise.all([cargarUsuarios(), cargarAccesos()]);
+      }
+      return;
+    }
 
     if (pendingReset) {
       $('modal-confirmar').textContent = 'Reseteando…';
@@ -356,12 +396,73 @@
     }
   });
 
+  /* ─── Nuevo usuario (SQL 034) ─── */
+  // Si falta el SQL 034, PostgREST responde "Could not find the function"
+  function errorUsuarios(err) {
+    var m = (err && err.message) || 'Error desconocido';
+    if (/could not find the function|PGRST202/i.test(m)) return 'Falta aplicar el SQL 034 en Supabase.';
+    return m;
+  }
+
+  $('btn-nuevo-usuario').addEventListener('click', function () {
+    $('f-nuevo-usuario').reset();
+    $('nu-error').hidden = true;
+    $('modal-usuario').hidden = false;
+    $('nu-email').focus();
+  });
+
+  $('nu-cancelar').addEventListener('click', function () {
+    $('modal-usuario').hidden = true;
+  });
+
+  $('f-nuevo-usuario').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var email = $('nu-email').value.trim().toLowerCase();
+    var pw = $('nu-password').value.trim();
+    var modulos = Array.prototype.map.call(
+      document.querySelectorAll('input[name="nu-mod"]:checked'), function (c) { return c.value; });
+
+    $('nu-error').hidden = true;
+    if (pw && pw.length < 8) {
+      $('nu-error').textContent = 'La contraseña tiene que tener al menos 8 caracteres (o dejala vacía para usar la genérica).';
+      $('nu-error').hidden = false;
+      return;
+    }
+    if (!modulos.length) {
+      $('nu-error').textContent = 'Tildá al menos una aplicación; si no, el usuario entra y no ve nada.';
+      $('nu-error').hidden = false;
+      return;
+    }
+
+    var btn = $('nu-guardar');
+    btn.disabled = true;
+    btn.textContent = 'Creando…';
+    var res = await sb.rpc('admin_crear_usuario', {
+      p_email: email,
+      p_password: pw || null,
+      p_nombre: $('nu-nombre').value.trim() || null,
+      p_modulos: modulos
+    });
+    btn.disabled = false;
+    btn.textContent = 'Crear usuario';
+
+    if (res.error) {
+      $('nu-error').textContent = errorUsuarios(res.error);
+      $('nu-error').hidden = false;
+      return;
+    }
+    $('modal-usuario').hidden = true;
+    toast('Usuario ' + email + ' creado' + (pw ? '' : ' con la contraseña genérica'));
+    await Promise.all([cargarUsuarios(), cargarAccesos()]);
+  });
+
   /* ─── Cambiar contraseña ─── */
   var pendingCambio = null;
 
   function abrirCambiarPassword(uid, email) {
     pendingCambio = uid;
     pendingReset = null;
+    pendingEliminar = null;
     $('modal-titulo').textContent = 'Cambiar contraseña';
     $('modal-msg').textContent = 'Nueva contraseña para ' + email + ':';
     $('modal-pw-input').hidden = false;

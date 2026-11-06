@@ -1772,7 +1772,7 @@ function Admin({cfg,saveCfg,registros,onPurgeDB,onReloadDB,onSyncPendientes}){
           </button>
         ))}
       </div>
-      {tab==="usuarios"&&<div style={d.card}><p style={{color:"var(--text)",fontSize:"14px",lineHeight:1.6}}>Los usuarios de Portería ahora son los de Central Mantenimiento. Para dar o quitar acceso entrá a <a href="/admin">Administración → Accesos</a> y tildá “Portería”. Los administradores de Central son administradores de Portería.</p></div>}
+      {tab==="usuarios"&&<div style={d.card}><p style={{color:"var(--text)",fontSize:"14px",lineHeight:1.6}}>Los usuarios de Portería ahora son los de Central Mantenimiento. Para crear o eliminar usuarios entrá a <a href="/admin">Administración → Usuarios</a>; para dar o quitar acceso a uno que ya existe, a Accesos, tildando “Portería”. Los administradores de Central son administradores de Portería.</p></div>}
       {ct?.key&&<ListEditor key={ct.id} title={ct.label} items={cfg[ct.key]||[]} onSave={(list)=>saveCfg({...cfg,[ct.key]:list})}/>}
       {tab==="purgar"&&<PurgarDB registros={registros} onPurgeDB={onPurgeDB}/>}
       {tab==="backend"&&<BackendPanel onReloadDB={onReloadDB} onSyncPendientes={onSyncPendientes} registros={registros}/>}

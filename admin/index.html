@@ -88,6 +88,7 @@
                 <option value="Admin">Admin</option>
               </select>
             </div>
+            <button class="btn" id="btn-nuevo-usuario">+ Nuevo usuario</button>
           </div>
           <div class="kpis" id="kpis"></div>
           <div class="table-wrap">
@@ -188,6 +189,40 @@
         <button class="btn peligro" id="modal-confirmar">Confirmar</button>
       </div>
     </div>
+  </div>
+
+  <!-- Modal nuevo usuario -->
+  <div class="modal-overlay" id="modal-usuario" hidden>
+    <form class="modal-box" id="f-nuevo-usuario" autocomplete="off">
+      <h3>Nuevo usuario</h3>
+      <div class="form-field">
+        <label for="nu-email">Mail</label>
+        <input id="nu-email" type="email" placeholder="nombre_apellido@carrefour.com" required>
+      </div>
+      <div class="form-field">
+        <label for="nu-nombre">Nombre (opcional)</label>
+        <input id="nu-nombre" type="text" placeholder="Como se muestra en las apps">
+      </div>
+      <div class="form-field">
+        <label for="nu-password">Contraseña (opcional)</label>
+        <input id="nu-password" type="text" placeholder="Vacío = la genérica" autocomplete="off">
+      </div>
+      <div class="form-field">
+        <label>Aplicaciones</label>
+        <div class="nu-modulos">
+          <label><input type="checkbox" name="nu-mod" value="porteria"> Portería</label>
+          <label><input type="checkbox" name="nu-mod" value="reclamos"> Eficiencia Energética</label>
+          <label><input type="checkbox" name="nu-mod" value="frio"> Frío Alimentario</label>
+          <label><input type="checkbox" name="nu-mod" value="admin"> Administración</label>
+        </div>
+      </div>
+      <p class="muted" style="font-size:12.5px">Con la contraseña genérica, la primera vez que entre se le pide elegir una propia.</p>
+      <p class="error" id="nu-error" hidden></p>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="nu-cancelar">Cancelar</button>
+        <button type="submit" class="btn" id="nu-guardar">Crear usuario</button>
+      </div>
+    </form>
   </div>
 
   <!-- Modal editar tienda -->
